@@ -4,11 +4,11 @@ import sys
 typeCrypt = sys.argv[1]
 typeAction = sys.argv[2]
 
-if(typeCrypt != "-c" or typeCrypt != "-a"):
+if(typeCrypt != "-c" and typeCrypt != "-a"):
     print("Wrong type of crypt")
     exit()
 
-if(typeAction != "-e" or typeAction != "-d" or typeAction != "-j" or typeAction != "-k"):
+if(typeAction != "-e" and typeAction != "-d" and typeAction != "-j" and typeAction != "-k"):
     print("Wrong type of action")
     exit()
 
@@ -27,33 +27,32 @@ def encrypt_text_c(plaintext,n):
     ans = ""
     for i in range(len(plaintext)):
         ch = plaintext[i]
-        if ch==" ":
-            ans+=" "
+        if ch == " ":
+            ans += " "
         elif (ch.isupper()):
-            ans += chr((ord(ch) + n-65) % 26 + 65)
+            ans += chr((ord(ch) + int(n) - 65) % 26 + 65)
         else:
-            ans += chr((ord(ch) + n-97) % 26 + 97)
+            ans += chr((ord(ch) + int(n) - 97) % 26 + 97)
     return ans
 
 def decrypt_text_c(encrypted_message, k):
-    letters="abcdefghijklmnopqrstuvwxyz"
+    letters="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
     decrypted_message = ""
 
     for ch in encrypted_message:
         if ch in letters:
             position = letters.find(ch)
-            new_pos = (position - k) % 26
+            new_pos = (position - int(k)) % 26
             new_char = letters[new_pos]
             decrypted_message += new_char
         else:
             decrypted_message += ch
     return decrypted_message
 
-def find_number_of_encryption_c(encrypted_message, decrypted_message):
-    number_of_encryption = 0
-    for i in range(0, 26):
-        decrypted_message = decrypt_text_c(encrypted_message, i)
-        if decrypted_message == encrypted_message:
+def find_number_of_encryption_c(decrypted_message,encrypted_message):
+    number_of_encryption = 1
+    for i in range(1, 26):
+        if decrypt_text_c(encrypted_message, i) == decrypted_message.lower():
             number_of_encryption = i
     return number_of_encryption
 
@@ -64,22 +63,21 @@ def encrypt_text_a(plaintext,a,b):
     ans = ""
     for i in range(len(plaintext)):
         ch = plaintext[i]
-        if ch==" ":
-            ans+=" "
+        if ch == " ":
+            ans += " "
         elif (ch.isupper()):
-            ans += chr((ord(ch) * a + b-65) % 26 + 65)
+            ans += chr((int(a) * (ord(ch) - 65) + int(b)) % 26 + 65)
         else:
-            ans += chr((ord(ch) * a + b-97) % 26 + 97)
+            ans += chr((int(a) * (ord(ch) - 97) + int(b)) % 26 + 97)
     return ans
 
 def decrypt_text_a(encrypted_message, a, b):
-    letters="abcdefghijklmnopqrstuvwxyz"
+    letters="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
     decrypted_message = ""
-
     for ch in encrypted_message:
         if ch in letters:
             position = letters.find(ch)
-            new_pos = (position - b) % 26
+            new_pos = (position - int(b)) * int(a) % 26
             new_char = letters[new_pos]
             decrypted_message += new_char
         else:
@@ -114,7 +112,7 @@ match typeCrypt:
                 print(encrypt_text_c(text_from_plain, encrypt_cesar))
             case "-d":
                 # decrypt cesar code
-                print(decrypt_text_c(text_from_plain, encrypt_cesar))
+                print(decrypt_text_c(text_from_extra, encrypt_cesar))
             case "-j":
                 # cryptoanalysis cesar code
                 print(find_number_of_encryption_c(text_from_plain, text_from_extra))
@@ -126,7 +124,7 @@ match typeCrypt:
             case "-e":
                 print(encrypt_text_a(text_from_plain, parameters_of_anifinic[0], parameters_of_anifinic[1]))
             case "-d":
-                print(decrypt_text_a(text_from_plain, parameters_of_anifinic[0], parameters_of_anifinic[1]))
+                print(decrypt_text_a(text_from_extra, parameters_of_anifinic[0], parameters_of_anifinic[1]))
             case "-j":
                 print(find_number_of_encryption_a(text_from_plain, text_from_extra))
             case "-k": 
