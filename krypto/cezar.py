@@ -1,5 +1,6 @@
 # autorem programu jest: Maciej Słupianek
 import sys
+import math
 
 typeCrypt = sys.argv[1]
 typeAction = sys.argv[2]
@@ -52,56 +53,89 @@ def decrypt_text_c(encrypted_message, k):
 def find_number_of_encryption_c(decrypted_message,encrypted_message):
     number_of_encryption = 1
     for i in range(1, 26):
-        if decrypt_text_c(encrypted_message, i) == decrypted_message.lower():
+        print(decrypt_text_c(decrypted_message, i))
+        if encrypted_message.lower() in decrypt_text_c(decrypted_message, i):
             number_of_encryption = i
     return number_of_encryption
 
 def find_uncrypted_text_c(encrypted_message):
-    print('')
+    arrOfResults = []
+    for i in range(1, 26):
+        arrOfResults.append(decrypt_text_c(encrypted_message, i))
+    return arrOfResults   
 
-def encrypt_text_a(plaintext,a,b):
-    ans = ""
-    for i in range(len(plaintext)):
-        ch = plaintext[i]
-        if ch == " ":
-            ans += " "
-        elif (ch.isupper()):
-            ans += chr((int(a) * (ord(ch) - 65) + int(b)) % 26 + 65)
-        else:
-            ans += chr((int(a) * (ord(ch) - 97) + int(b)) % 26 + 97)
-    return ans
+def mod_inverse(a, m):
+    for x in range(1, m):
+        if (a * x) % m == 1:
+            return x
+    return None
 
-def decrypt_text_a(encrypted_message, a, b):
-    letters="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    decrypted_message = ""
-    for ch in encrypted_message:
-        if ch in letters:
-            position = letters.find(ch)
-            new_pos = (position - int(b)) * int(a) % 26
-            new_char = letters[new_pos]
-            decrypted_message += new_char
+# function to encrypt a single letter
+def encrypt_letter(p, a, b):
+    return (a * p + b) % 26
+
+# function to decrypt a single letter
+def decrypt_letter(c, a, b):
+    a_inv = mod_inverse(a, 26)
+    return (a_inv * (c - b)) % 26
+
+# function to encrypt a string
+def encrypt_text_a(plaintext, a, b):
+    ciphertext = ''
+    for p in plaintext:
+        if p.isalpha():
+            # convert letter to number (A=0, B=1, etc.)
+            p_num = ord(p.upper()) - 65
+            c_num = encrypt_letter(p_num, a, b)
+            # convert number back to letter
+            c = chr(c_num + 65)
         else:
-            decrypted_message += ch
-    return decrypted_message
+            # non-alphabetic characters are unchanged
+            c = p
+        ciphertext += c
+    return ciphertext
+
+# function to decrypt a string
+def decrypt_text_a(ciphertext, a, b):
+    plaintext = ''
+    for c in ciphertext:
+        if c.isalpha():
+            # convert letter to number (A=0, B=1, etc.)
+            c_num = ord(c.upper()) - 65
+            p_num = decrypt_letter(c_num, a, b)
+            # convert number back to letter
+            p = chr(p_num + 65)
+        else:
+            # non-alphabetic characters are unchanged
+            p = c
+        plaintext += p
+    return plaintext
 
 def find_number_of_encryption_a(encrypted_message, decrypted_message):
     number_of_encryption = []
-    for i in range(0, 100):
-        for k in range(0, 100):
-            decrypted_message = decrypt_text_a(encrypted_message, i,k)
-            if decrypted_message == encrypted_message:
+    for i in [1,3,5,7,9,11,15,17,19,21,23,25]:
+        for k in range(1, 26):
+            if decrypted_message.upper() in decrypt_text_a(encrypted_message, i,k):
+                print(i,k)
                 number_of_encryption = [i,k]
+                break
+        if number_of_encryption != []:
+            break    
     return number_of_encryption
 
 def find_uncrypted_text_a(encrypted_message):
-    print('')
+    number_of_encryptions = []
+    for i in [1,3,5,7,9,11,15,17,19,21,23,25]:
+        for k in range(1, 27):
+                number_of_encryptions.append(decrypt_text_a(encrypted_message, i,k)) 
+    return number_of_encryptions
 
 text_from_plain = take_text_from_file("plain.txt")
 text_from_key = take_text_from_file("key.txt")
 text_from_extra = take_text_from_file("extra.txt")
+text_from_crypto = take_text_from_file("crypto.txt")
 
-encrypt_cesar = text_from_key[0]
-parameters_of_anifinic = [text_from_key[2], text_from_key[4]]
+parameters = [int(text_from_key[0]), int(text_from_key[2])]
 
 
 match typeCrypt:
@@ -109,26 +143,34 @@ match typeCrypt:
         match typeAction:
             case "-e":
                 # crypt cesar code
-                print(encrypt_text_c(text_from_plain, encrypt_cesar))
+                safe_to_file("crypto.txt", "\n" + encrypt_text_c(text_from_plain, parameters[0]))
             case "-d":
                 # decrypt cesar code
-                print(decrypt_text_c(text_from_extra, encrypt_cesar))
+                safe_to_file("decrypt.txt",  "\n" +  decrypt_text_c(text_from_plain, parameters[0]))
             case "-j":
-                # cryptoanalysis cesar code
-                print(find_number_of_encryption_c(text_from_plain, text_from_extra))
-            case "-k":            
                 # crypt cesar code with key
-                print('')
+                safe_to_file("key-found.txt",  "\n" + str(find_number_of_encryption_c(text_from_crypto,text_from_extra)))
+            case "-k":            
+                # cryptoanalysis cesar code
+                arr = find_uncrypted_text_c(text_from_crypto)
+                someStr = "\ndecrypted text:\n"
+                for i in range(len(arr)):
+                    someStr += "key" + str(i) + ": " + arr[i] + "\n"
+                safe_to_file("crypto.txt", someStr)
     case "-a":    
         match typeAction:
             case "-e":
-                print(encrypt_text_a(text_from_plain, parameters_of_anifinic[0], parameters_of_anifinic[1]))
+                safe_to_file("crypto.txt",  "\n" + encrypt_text_a(text_from_plain, parameters[0], parameters[2]))
             case "-d":
-                print(decrypt_text_a(text_from_extra, parameters_of_anifinic[0], parameters_of_anifinic[1]))
+                safe_to_file("decrypt.txt",  "\n" +  decrypt_text_a(text_from_extra, parameters[0], parameters[2]))
             case "-j":
-                print(find_number_of_encryption_a(text_from_plain, text_from_extra))
+                safe_to_file("key-found.txt",  "\n" + str(find_number_of_encryption_a(text_from_crypto,text_from_extra)))
             case "-k": 
-                print('')
+                arr = find_uncrypted_text_a(text_from_crypto)
+                someStr = "\ndecrypted text:\n"
+                for i in range(len(arr)):
+                    someStr += "\n" + "key" + str(i) + ": " + arr[i] 
+                safe_to_file("crypto.txt", someStr)
     case _ : 
-        print('')            
+        print('coś poszło nie tak')            
 
