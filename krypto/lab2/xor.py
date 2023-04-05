@@ -22,34 +22,74 @@ def prepare_text(text, line_length):
     padded_text = text.ljust(len(text) + (line_length - (len(text) % line_length)))
     return '\n'.join([padded_text[i:i+line_length] for i in range(0, len(padded_text), line_length)])
 
-# Funkcja do wykonania operacji XOR na dwóch łańcuchach znaków
-def xor_strings(string, key):
-    text = string.split("\n")
-    return ''.join(format(ord(c) ^ ord(k), '08b') for c, k in zip(string, key))
+def text_to_binary(text):
+    binary = ""
+    for char in text:
+        binary += format(ord(char), "08b")
+    return binary
 
-# Funkcja do zaszyfrowania tekstu za pomocą klucza
-def encrypt(plaintext, key):
-    ciphertext = xor_strings(plaintext, key)
-    return ciphertext
+def encrypt(text, key):
+    text = text.lower()
+    text = text.split("\n")
+    crypto = []
+    for line in text:
+        crypto_line = ""
+        for index, char in enumerate(line):
+            crypto_line += format(int(text_to_binary(char), 2) ^ int(text_to_binary(key[index]), 2), "08b")
+            crypto.append(crypto_line)
+    f = open("crypto.txt", "w")
+    for index, line in enumerate(crypto):
+        if index == 0:
+            f.write(line)
+        else:
+            f.write("\n" + line)
+    f.close()
+
+def binary_to_text(binary):
+    text = ""
+    for i in range(0, len(binary), 8):
+        text += chr(int(binary[i:i+8], 2))
+    return text
 
 # Funkcja do odszyfrowania tekstu za pomocą klucza
-def decrypt(ciphertext, key):
-    plaintext = xor_strings(ciphertext, key)
-    return plaintext
+def cryptanalysis(line_length, crypto):
+    key = ["#" for i in range(line_length)]
+    crypto1 = crypto.split("\n")
+    if crypto1[-1] == "":
+        crypto1 = crypto1[:-1]
 
-# Funkcja do wykonania kryptoanalizy na podstawie kryptogramu
-def cryptanalysis(ciphertext):
-    # Nie jest możliwe wykonanie kryptoanalizy w oparciu o sam kryptogram, ponieważ brakuje klucza
-    # Program wypisze w tym przypadku komunikat o błędzie
-    print("Błąd: Brak klucza do wykonania kryptoanalizy.")
-    return
+    for i in range(len(crypto1)):
+        for j in range(0, len(crypto1[i]), 8):
+            if crypto1[i][j] == "0" and crypto1[i][j+1] == "1" and crypto1[i][j+2] == "0":
+                key[j//8] = chr(int(crypto1[i][j:j+8], 2) ^ 32)
+    key = "".join(key)
+    print("key: " + key)
+    return decrypt(key, line_length, crypto)
+
+def decrypt(key, line_length, crypto):
+    crypto = crypto.split("\n")
+
+    decrypt = []
+    for line in crypto:
+            decrypt_line = ""
+            j = 0
+            for i in range(0, len(line), 8):
+                if key[j] == "#":
+                    decrypt_line += format(int(text_to_binary("#"), 2), "08b")
+                else:
+                    decrypt_line += format(int(text_to_binary(key[j]),
+                                               2) ^ int(line[i:i+8], 2), "08b")
+                j += 1
+            decrypt.append(binary_to_text(decrypt_line))
+
+    return "".join(decrypt)
 
 match action:
     case "-p":
         write_file('plain.txt', prepare_text(read_file('orig.txt').replace('\n', ''), 64))
     case "-e":
-        write_file('crypto.txt', encrypt(read_file('plain.txt'), read_file('key.txt')))
+        encrypt(read_file('plain.txt'), read_file('key.txt'))
     case "-k":    
-        write_file('decrypt.txt', cryptanalysis(read_file('crypto.txt')))
+        write_file('decrypt.txt', cryptanalysis(64,read_file('crypto.txt')))
 
         
