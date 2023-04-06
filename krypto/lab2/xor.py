@@ -1,3 +1,4 @@
+#autor: Maciej Słupianek
 import argparse
 import sys
 
@@ -36,7 +37,7 @@ def encrypt(text, key):
         crypto_line = ""
         for index, char in enumerate(line):
             crypto_line += format(int(text_to_binary(char), 2) ^ int(text_to_binary(key[index]), 2), "08b")
-            crypto.append(crypto_line)
+        crypto.append(crypto_line)
     f = open("crypto.txt", "w")
     for index, line in enumerate(crypto):
         if index == 0:
