@@ -21,7 +21,8 @@ def take_text_from_file(file_name):
     return text
 
 def safe_to_file(file_name, text):
-    with open(file_name, 'a') as the_file:
+    open(file_name, "x")
+    with open(file_name, 'w') as the_file:
         the_file.write(text)
 
 def encrypt_text_c(plaintext,n):
@@ -133,7 +134,6 @@ def find_uncrypted_text_a(encrypted_message):
 text_from_plain = take_text_from_file("plain.txt")
 text_from_key = take_text_from_file("key.txt")
 text_from_extra = take_text_from_file("extra.txt")
-text_from_crypto = take_text_from_file("crypto.txt")
 
 parameters = [int(text_from_key[0]), int(text_from_key[2])]
 
@@ -149,9 +149,11 @@ match typeCrypt:
                 safe_to_file("decrypt.txt",  "\n" +  decrypt_text_c(text_from_plain, parameters[0]))
             case "-j":
                 # crypt cesar code with key
+                text_from_crypto = take_text_from_file("crypto.txt")
                 safe_to_file("key-found.txt",  "\n" + str(find_number_of_encryption_c(text_from_crypto,text_from_extra)))
             case "-k":            
                 # cryptoanalysis cesar code
+                text_from_crypto = take_text_from_file("crypto.txt")
                 arr = find_uncrypted_text_c(text_from_crypto)
                 someStr = "\ndecrypted text:\n"
                 for i in range(len(arr)):
@@ -164,8 +166,10 @@ match typeCrypt:
             case "-d":
                 safe_to_file("decrypt.txt",  "\n" +  decrypt_text_a(text_from_extra, parameters[0], parameters[2]))
             case "-j":
+                text_from_crypto = take_text_from_file("crypto.txt")
                 safe_to_file("key-found.txt",  "\n" + str(find_number_of_encryption_a(text_from_crypto,text_from_extra)))
             case "-k": 
+                text_from_crypto = take_text_from_file("crypto.txt")
                 arr = find_uncrypted_text_a(text_from_crypto)
                 someStr = "\ndecrypted text:\n"
                 for i in range(len(arr)):
