@@ -162,9 +162,9 @@ match typeCrypt:
     case "-a":    
         match typeAction:
             case "-e":
-                safe_to_file("crypto.txt",  "\n" + encrypt_text_a(text_from_plain, parameters[0], parameters[2]))
+                safe_to_file("crypto.txt",  "\n" + encrypt_text_a(text_from_plain, parameters[0], parameters[1]))
             case "-d":
-                safe_to_file("decrypt.txt",  "\n" +  decrypt_text_a(text_from_extra, parameters[0], parameters[2]))
+                safe_to_file("decrypt.txt",  "\n" +  decrypt_text_a(text_from_extra, parameters[0], parameters[1]))
             case "-j":
                 text_from_crypto = take_text_from_file("crypto.txt")
                 safe_to_file("key-found.txt",  "\n" + str(find_number_of_encryption_a(text_from_crypto,text_from_extra)))
