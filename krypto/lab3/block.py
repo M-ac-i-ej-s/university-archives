@@ -1,3 +1,5 @@
+# autor: Maciej Słupianek
+
 from hashlib import md5
 from PIL import Image
 
@@ -55,12 +57,9 @@ def process_image(input_path, output_ecb_path, output_cbc_path, key):
         cbc_img = Image.frombytes(img.mode, img.size, cbc_data)
         cbc_img.save(output_cbc_path)
 
-input_path = 'plain.bmp'
-output_ecb_path = 'ecb_crypto.bmp'
-output_cbc_path = 'cbc_crypto.bmp'
-
 if (read_file('key.txt') == ''):
     key = 'moj_tajny_klucz'
-key = read_file('key.txt')
+else:
+    key = read_file('key.txt')
 
-process_image(input_path, output_ecb_path, output_cbc_path, key)
+process_image('plain.bmp', 'ecb_crypto.bmp', 'cbc_crypto.bmp', key)
