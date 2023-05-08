@@ -6,6 +6,8 @@ import Nav from "./components/Nav";
 import WelcomePage from "./pages/Homepage";
 import SecuredPage from "./pages/Securedpage";
 import PrivateRoute from "./helpers/PrivateRoute";
+import AdminRoute from "./helpers/AdminRoute";
+import AdminPage from "./pages/AdminPage"
 
 function App() {
  return (
@@ -22,6 +24,14 @@ function App() {
                  <SecuredPage />
                </PrivateRoute>
              }
+           />
+           <Route 
+           path="/admin" 
+           element={
+            <AdminRoute>
+              <AdminPage/>
+            </AdminRoute>
+           }
            />
          </Routes>
        </BrowserRouter>

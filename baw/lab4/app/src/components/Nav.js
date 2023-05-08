@@ -24,6 +24,11 @@ const Nav = () => {
                    Secured Page
                  </a>
                </li>
+               <li>
+                 <a className="hover:text-blue-800" href="/admin">
+                   Admin page
+                 </a>
+               </li>
              </ul>
              <div className="hidden xl:flex items-center space-x-5">
                <div className="hover:text-gray-200">
