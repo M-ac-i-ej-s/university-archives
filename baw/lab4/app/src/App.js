@@ -10,9 +10,12 @@ import AdminRoute from "./helpers/AdminRoute";
 import AdminPage from "./pages/AdminPage"
 
 function App() {
+
+ const initOptions = { pkceMethod: "S256" };
+
  return (
    <div>
-     <ReactKeycloakProvider authClient={keycloak}>
+     <ReactKeycloakProvider authClient={keycloak} initOptions={initOptions}>
        <Nav />
        <BrowserRouter>
          <Routes>
