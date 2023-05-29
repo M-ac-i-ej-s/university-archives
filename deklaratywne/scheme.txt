@@ -1,0 +1,8 @@
+car - head
+cdr tail 
+cond - if 
+define - function
+cons - łączy w liste dwa elementy
+fold-left - reduce (do funkcji słówko lambda)
+eq? - ==
+set! - ustaw wartość
