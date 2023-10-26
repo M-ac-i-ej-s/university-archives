@@ -1,3 +1,4 @@
+import os
 import sys
 
 def count_in_file(filename, word):
@@ -13,7 +14,7 @@ def count_in_file(filename, word):
             if "\\input" in line:
                 l = len(line)
                 new_file = line[7:l - 1]
-                count += count_in_file(new_file, word)
+                count += os.spawnv(os.P_WAIT, sys.executable, [sys.executable, "main.py", new_file, word])
     return count
 
 if __name__ == '__main__':
