@@ -1,33 +1,66 @@
-import subprocess
-import time
+from __future__ import annotations
 import os
+import errno
+import time
+import signal
+import sys
+import select
 
-FIFO = 'buffer'
-DB = {
-    "01": {"name": "Maciej", "len": "06"},
-    "02": {"name": "Filip", "len": "05"},
-    "03": {"name": "Marek!!", "len": "07"}
-}
+def sigusr1Handler(signum, frame):
+    print("Server jest wyłączany")
+    sys.exit(0)
 
-try:
-    if not os.path.exists(FIFO):
-        subprocess.run(['mkfifo', FIFO])
-except FileExistsError:
-    pass
+# keep running the server even after closing the terminal
+def sighupHandler(signum, frame):
+    print("Serwer nadal działa, pomimo otrzymania SIGHUP")
 
-fifo_in = os.open(FIFO, os.O_RDONLY | os.O_BINARY)
+def sigtermHandler(signum, frame):
+    print("Serwer nadal działa, pomimo otrzymania SIGTERM")
 
-fifo_out = os.open(FIFO, os.O_WRONLY | os.O_NDELAY | os.O_BINARY)
+signal.signal(signal.SIGUSR1, sigusr1Handler)
+signal.signal(signal.SIGHUP, sighupHandler)
+signal.signal(signal.SIGTERM, sigtermHandler)
 
-while True:
-    message_len = os.read(fifo_in, 2)
-    if len(message_len) > 0:
-        message_len = int(message_len)
-        db_id = os.read(fifo_in, 2).decode()
-        path = os.read(fifo_in, message_len).decode()
-        print(message_len, db_id, path)
+def main() -> None:
+    SERVER_INPUT_FIFO_PATH = "server-fifo"
+ 
+    people = {
+        "1": "Marek",
+        "2": "Krzysztof",
+        "3": "Karol",
+        "4": "Maciej",
+    }
 
-        response = os.open(path, os.O_WRONLY | os.O_BINARY)
-        os.write(response, f'{DB[db_id]["len"]}{DB[db_id]["name"]}'.encode())
-        os.close(response)
-    time.sleep(5)
+    try:
+        os.mkfifo(SERVER_INPUT_FIFO_PATH)
+    except OSError as oe:
+        if oe.errno != errno.EEXIST:
+            raise
+
+    print("Serwer jest aktywny i oczekuję zapytań")
+    server_input_fifo = open(SERVER_INPUT_FIFO_PATH, "r")
+
+    while True:
+        rlist, _, _ = select.select([server_input_fifo], [], [])
+        raw_request = server_input_fifo.readline()
+        if not raw_request:
+            continue
+        raw_request_split = raw_request.strip().split(" ")
+        if len(raw_request_split) != 2:
+            print("Invalid request")
+            continue
+        [person_id, client_input_fifo_path] = raw_request_split
+        print(f"Zapytanie od {client_input_fifo_path} o osobe z id {person_id}")
+
+        try:
+            client_input_fifo = open(client_input_fifo_path, "w")
+            try:
+                person = people.get(person_id, "nie znaleziono osoby")
+                client_input_fifo.write(f"{person}\n")
+            finally:
+                client_input_fifo.close()
+        except FileNotFoundError:
+            print("fifo klienta nie znalezione")
+
+if __name__ == "__main__":
+    main()

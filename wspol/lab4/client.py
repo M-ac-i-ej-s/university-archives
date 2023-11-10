@@ -1,38 +1,36 @@
+import sys
 import os
-import random
 import errno
-import time
 
-buffer = 'buffer'
+def main() -> None:
+    if len(sys.argv) != 3:
+        print("format zapytania: client.py <client_name> <requested_person_id>")
+        sys.exit(1)
+    client_name = sys.argv[1]
+    requested_person_id = sys.argv[2]
+    client_input_fifo_path = f"{client_name}"
+    try:
+        os.mkfifo(client_input_fifo_path)
+    except OSError as oe:
+        if oe.errno != errno.EEXIST:
+            raise
 
-fifo_name = f"fifo-{random.randint(1, 9999)}"
-fifo_path = str(os.getcwd() + f"/{fifo_name}")
-fifo_path_len = len(fifo_path)
+    raw_request = f"{requested_person_id} {client_input_fifo_path}\n"
+    print("Zapytania jest wysyłane..")
+    SERVER_INPUT_FIFO_PATH = "server-fifo"
+    server_input_fifo = open(SERVER_INPUT_FIFO_PATH, "w")
+    server_input_fifo.write(raw_request)
+    server_input_fifo.close()
 
-ID = input("ID: ")
+    print("Oczekiwanie odpowiedzi od serwera...")
+    
+    client_input_fifo = open(client_input_fifo_path, "r")
+    raw_response = client_input_fifo.read()
+    client_input_fifo.close()
+    os.remove(client_input_fifo_path)
 
-try:
-    os.mkfifo(fifo_name)
-except OSError as oe:
-    if oe.errno != errno.EEXIST:
-        raise
+    response = raw_response.strip()
+    print(response)
 
-out = os.open(buffer, os.O_WRONLY)
-os.write(out, f'{fifo_path_len}{ID}{fifo_path}'.encode())
-os.close(out)
-
-fifo_in = os.open(fifo_name, os.O_RDONLY)
-fifo_out = os.open(fifo_name, os.O_WRONLY|os.O_NDELAY)
-
-while True:
-    message_len = os.read(fifo_in, 2)
-    if len(message_len) > 0:
-        message_len = int(message_len)
-        message = os.read(fifo_in, message_len).decode()
-        print("Message: ", message)
-        break
-
-    time.sleep(5)
-
-os.close(fifo_in)
-os.remove(fifo_path)
+if __name__ == "__main__":
+    main()
