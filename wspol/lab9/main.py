@@ -15,12 +15,12 @@ def is_prime(n):
     return True
 
 
-def find_primes(f, t, b):
+def find_primes(f, t, barrier):
     p = []
     for i in range(f, t):
         if is_prime(i):
             p.append(i)
-    b.wait()
+    barrier.wait()
     with lock:
         primes.extend(p)
     return p
