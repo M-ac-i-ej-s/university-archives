@@ -1,39 +1,41 @@
+import math
 import threading
-import sys
-import time
+from threading import Barrier
 
-primes = []
-threats_amount = 4
-n = 10000
+l = 2
+r = 1000
+num_threads = 5
+pierwsze = []
 
-
-def is_prime(n):
-    k = int(n ** 0.5) + 1
-    for i in range(2, k):
-        if n % i == 0:
+def pierwsza(k):
+    s = math.ceil(math.sqrt(k))
+    for i in range(2, s + 1):
+        if k % i == 0:
             return False
     return True
 
+def znajdz_pierwsze_w_podprzedziale(start, end, barrier):
+    local_pierwsze = []
+    for i in range(start, end + 1):
+        if pierwsza(i):
+            local_pierwsze.append(i)
 
-def find_primes(f, t, barrier):
-    p = []
-    for i in range(f, t):
-        if is_prime(i):
-            p.append(i)
+    pierwsze.extend(local_pierwsze)
     barrier.wait()
-    with lock:
-        primes.extend(p)
-    return p
 
+bariera = Barrier(num_threads + 1)
+
+podprzedzial = (r - l + 1) // num_threads
 
 threads = []
-lock = threading.Lock()
-barrier = threading.Barrier(threats_amount)
 
-for i in range(threats_amount):
-    threads.append(
-        threading.Thread(target=find_primes, args=(i * n // threats_amount, (i + 1) * n // threats_amount, barrier)))
-    threads[i].start()
-barrier.wait()
-print(primes)
-sys.exit()
+for i in range(num_threads):
+    start = l + i * podprzedzial
+    end = start + podprzedzial - 1 if i < num_threads - 1 else r
+    thread = threading.Thread(target=znajdz_pierwsze_w_podprzedziale, args=(start, end, bariera))
+    thread.start()
+    threads.append(thread)
+
+bariera.wait()
+
+print(sorted(pierwsze))
