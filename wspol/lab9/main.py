@@ -3,8 +3,8 @@ import threading
 from threading import Barrier
 
 l = 2
-r = 1000
-num_threads = 5
+r = 10000
+num_threads = 5 
 pierwsze = []
 
 def pierwsza(k):
@@ -20,10 +20,13 @@ def znajdz_pierwsze_w_podprzedziale(start, end, barrier):
         if pierwsza(i):
             local_pierwsze.append(i)
 
-    pierwsze.extend(local_pierwsze)
+    with lock: 
+        pierwsze.extend(local_pierwsze)
     barrier.wait()
 
 bariera = Barrier(num_threads + 1)
+
+lock = threading.Lock()
 
 podprzedzial = (r - l + 1) // num_threads
 
