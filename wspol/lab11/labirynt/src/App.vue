@@ -4,7 +4,19 @@
   </div>
 </template>
 
-<script>
+<script setup>
+import { useItemStore } from "@/stores/item";
+import { useConnectionStore } from "@/stores/connection";
+import { socket } from "@/socket";
+
+const itemStore = useItemStore();
+const connectionStore = useConnectionStore();
+
+// remove any existing listeners (after a hot module replacement)
+socket.off();
+
+itemStore.bindEvents();
+connectionStore.bindEvents();
 </script>
 
 <style>
